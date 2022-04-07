@@ -1,0 +1,11 @@
+Message[302] E:\UNIVERSITY\REAL TIME\PROJECT4\PROJ4\PROJECT\FINALWORK.ASM 61 : Register in operand not in bank 0.  Ensure that bank bits are correct.
+Message[302] E:\UNIVERSITY\REAL TIME\PROJECT4\PROJ4\PROJECT\FINALWORK.ASM 66 : Register in operand not in bank 0.  Ensure that bank bits are correct.
+Message[305] E:\UNIVERSITY\REAL TIME\PROJECT4\PROJ4\PROJECT\FINALWORK.ASM 112 : Using default destination of 1 (file).
+Warning[207] E:\UNIVERSITY\REAL TIME\PROJECT4\PROJ4\PROJECT\FINALWORK.ASM 120 : Found label after column 1. (LOOP3)
+Warning[207] E:\UNIVERSITY\REAL TIME\PROJECT4\PROJ4\PROJECT\FINALWORK.ASM 122 : Found label after column 1. (LOOP2)
+Warning[207] E:\UNIVERSITY\REAL TIME\PROJECT4\PROJ4\PROJECT\FINALWORK.ASM 124 : Found label after column 1. (LOOP1)
+Message[305] E:\UNIVERSITY\REAL TIME\PROJECT4\PROJ4\PROJECT\FINALWORK.ASM 124 : Using default destination of 1 (file).
+Message[305] E:\UNIVERSITY\REAL TIME\PROJECT4\PROJ4\PROJECT\FINALWORK.ASM 126 : Using default destination of 1 (file).
+Message[305] E:\UNIVERSITY\REAL TIME\PROJECT4\PROJ4\PROJECT\FINALWORK.ASM 128 : Using default destination of 1 (file).
+Warning[207] E:\UNIVERSITY\REAL TIME\PROJECT4\PROJ4\PROJECT\FINALWORK.ASM 147 : Found label after column 1. (ISR1)
+Warning[207] E:\UNIVERSITY\REAL TIME\PROJECT4\PROJ4\PROJECT\FINALWORK.ASM 166 : Found label after column 1. (ISR2)

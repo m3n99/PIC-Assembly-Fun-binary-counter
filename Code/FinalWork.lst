@@ -1,0 +1,654 @@
+MPASM  5.50                     FINALWORK.ASM   2-1-2022  13:41:55         PAGE  1
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00001 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                      00002 ;
+                      00003 ;   Source File:        Project #4: 16F877A PICMicro programming under MPLAB
+                      00004 ;
+                      00005 ;                               **** Fun binary counter  ****           
+                      00006 ;       Author:         Maen Khdour 1171944 & Abdallah Bahrawi 1172316     
+                      00007 ;       Sec:            2                
+                      00008 ;       Date:           16-12-21      
+                      00009 ;       Due-Date:       7/1/2022
+                      00010 ;
+                      00011 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
+                      00012 
+                      00013 ;Include Libararies:
+                      00014 
+                      00015 #include p16f877a.inc
+                      00001         LIST
+                      00002 
+                      00003 ;==========================================================================
+                      00004 ;  MPASM PIC16F877A processor include
+                      00005 ; 
+                      00006 ;  (c) Copyright 1999-2013 Microchip Technology, All rights reserved
+                      00007 ;==========================================================================
+                      00008 
+                      00566         LIST
+                      00016 
+                      00017         PROCESSOR 16F877        ; Define MCU type
+2007   3733           00018         __CONFIG 0x3733         ; Set config fuses
+                      00019 
+                      00020 
+                      00021 ; Register Label Equates....................................
+                      00022 
+  00000006            00023 PORTB      EQU    0x06  ; Port B Data Register        
+  00000008            00024 PORTD      EQU    0x08  ; Port D Data Register  
+  00000088            00025 TRISD      EQU    0x88  ; Port D Direction Register
+  00000003            00026 STATUS     EQU    0x03  ; STATUS
+  00000021            00027 BUTTON_C1  EQU    0x21  ; counter for button1 to know how many time we pressed it.
+  00000022            00028 BUTTON_C2  EQU    0x22  ; counter for button 2 
+  00000001            00029 TMR0       EQU    0x01  ; Hardware Timer Register
+  0000000B            00030 INTCON     EQU    0x0B  ; Interrupt Control Register
+  00000081            00031 OPTREG     EQU    0x81  ; Option Register
+  00000030            00032 D1                 EQU    0x30  ; Define D1 TO D3 GPR for make 1 sec Dealy 
+  00000031            00033 D2                 EQU    0x31
+  00000032            00034 D3                 EQU    0x32
+  00000033            00035 delay_c2   EQU    0x33  ; GPR for store value of Button_c2 and make cal on it
+                      00036 
+                      00037 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                      00038 ;       Initialise Memory:
+                      00039 
+0000                  00040         ORG     000                             ; Start of program memory
+0000   0000           00041         NOP                                     ; For ICD mode
+0001   280A           00042         GOTO    init            ; Jump to main program
+                      00043 
+                      00044 ; Interrupt Service Routine ................................
+MPASM  5.50                     FINALWORK.ASM   2-1-2022  13:41:55         PAGE  2
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00045 
+0004                  00046         ORG             004             ; start from ISR Table 
+0004   188B           00047         BTFSC   INTCON,1        ; set INTCON bit 1 , Skip if it clear  
+0005   203D           00048         CALL    CAL_1           ; call Interrupt for button1 
+0006   180B           00049         BTFSC   INTCON,0        ; set INTCON bit 0 , Skip if it clear  
+0007   2048           00050         CALL    CAL_2           ; call Interrupt for button2 
+                      00051         
+0008   110B           00052         BCF             INTCON,2        ; Reset TMR0 interrupt flag
+                      00053         
+0009   0009           00054         RETFIE                      ; Return from interrupt     
+                      00055 
+                      00056 ; Initialise Port D (Port B defaults to inputs).............
+                      00057         
+000A   0000           00058 init:   NOP                             ; BANKSEL cannot be labelled
+000B   1683 1303      00059                 BANKSEL TRISD           ; Select bank 1
+000D   3000           00060         MOVLW   0x0     ; Port B Direction Code
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+000E   0088           00061         MOVWF   TRISD           ; Load the DDR coe into F86
+                      00062                 
+                      00063 ; Initialise Timer0,Inteurrputs and Button_c1,c2 ........................................
+                      00064 
+000F   30D8           00065         MOVLW   b'11011000'     ; TMR0 initialisation code
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0010   0081           00066         MOVWF   OPTREG          ; Int clock, no prescale        
+0011   1283 1303      00067         BANKSEL PORTD           ; Select bank 0
+0013   30A0           00068         MOVLW   b'10100000'     ; INTCON init. code
+0014   008B           00069         MOVWF   INTCON          ; Enable TMR0 interrupt
+0015   0000           00070         NOP                                     ; NOP instruction 
+0016   108B           00071         BCF     INTCON, 1       ; clear bit 1 in INTCON (clear for RB0 Flag)
+0017   178B           00072         BSF     INTCON, 7       ; set bit 7 in INTCON (Enable Global Interrupt)
+0018   160B           00073         BSF     INTCON, 4       ; set bit 4 in INTCON (Enable external Interrupt on RB0)
+                      00074         
+0019   3001           00075         MOVLW   0x01            ; put 1 on Button_c1 initail
+001A   00A1           00076         MOVWF   BUTTON_C1
+001B   0000           00077         NOP
+001C   3001           00078         MOVLW   0x01
+001D   00A2           00079         MOVWF   BUTTON_C2       ; put 1 on Button_c2 initail
+                      00080 
+                      00081 
+                      00082 ; Start main loop ...........................................   
+                      00083 
+001E                  00084 reset   
+001E   0188           00085                 CLRF    PORTD           ; Clear Port B Data 
+001F   2030           00086                 CALL    DELAY           ; Call Delay 1 sec 
+                      00087 
+0020                  00088 start:   
+                      00089 
+0020   0181           00090                 CLRF    TMR0            ; Reset timer
+0021   1D0B           00091 wait    BTFSS   INTCON,2        ; Check for time out
+0022   2821           00092                 GOTO    wait            ; Wait if not
+                      00093                 
+                      00094 
+                      00095 
+MPASM  5.50                     FINALWORK.ASM   2-1-2022  13:41:55         PAGE  3
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0023                  00096 stepin: 
+0023   301F           00097                 MOVLW   0x1F            ; Put 31 on Register W
+0024   0208           00098                 SUBWF   PORTD,0         ; sub the value on PortD from W and store value on W
+0025   1C03           00099                 BTFSS   STATUS,0        ; bit test STATUS, Skip if set 
+0026   2828           00100                 GOTO    count           ; GO to Lable count
+0027   281E           00101                 GOTO    reset           ; Go to reset if Skip
+                      00102 
+0028                  00103 count:
+0028   0821           00104                 MOVF    BUTTON_C1,0     ; put the value of button_C1 in W
+0029   0788           00105                 ADDWF   PORTD, 1        ; add the value of portD with W and store in port D
+002A   0822           00106                 MOVF    BUTTON_C2,0     ; put the value of button_C2 in W 
+                      00107 
+002B   00B3           00108                 MOVWF   delay_c2        ; Move content of W to Dela
+                      00109                 
+002C                  00110 del_c2: 
+002C   2030           00111                 CALL    DELAY           
+Message[305]: Using default destination of 1 (file).
+002D   0BB3           00112                 DECFSZ  delay_c2        ; Decrement dela , Skip if 0
+002E   282C           00113                 GOTO    del_c2                  
+002F   2820           00114         GOTO    start       ; Repeat main loop always
+                      00115                 
+                      00116 
+                      00117 ; Function make a DELAY 1 SECOND using 3 insted loops and GPR 
+0030   3040           00118 DELAY:          MOVLW 0x40      ; put 45hex in W to D1 = 69 In Decimal 
+0031   00B0           00119                         MOVWF D1
+Warning[207]: Found label after column 1. (LOOP3)
+0032   3040           00120         LOOP3:  MOVLW 0x40              ; put 45hex in W to D2
+0033   00B1           00121                         MOVWF D2
+Warning[207]: Found label after column 1. (LOOP2)
+0034   3040           00122         LOOP2:  MOVLW 0x40
+0035   00B2           00123                         MOVWF D3                ; put 45hex in W to D3
+Warning[207]: Found label after column 1. (LOOP1)
+Message[305]: Using default destination of 1 (file).
+0036   0BB2           00124         LOOP1:  DECFSZ D3       ; Decrement D3 skip if 0
+0037   2836           00125                         GOTO LOOP1
+Message[305]: Using default destination of 1 (file).
+0038   0BB1           00126                         DECFSZ D2
+0039   2834           00127                         GOTO LOOP2
+Message[305]: Using default destination of 1 (file).
+003A   0BB0           00128                         DECFSZ D1
+003B   2832           00129                         GOTO LOOP3
+003C   0008           00130         RETURN
+                      00131 
+                      00132 
+                      00133 ; Make Calculation and set, reset the INTCON of ISR
+                      00134 
+                      00135 ; Cal and ISR for Buuton1 counter the NUMBER LEDS increment 
+003D                  00136 CAL_1: 
+003D   0AA1           00137                 INCF    BUTTON_C1,1     ; Button_C1 and store the value on it
+003E   3006           00138                 MOVLW   0x06            ; Put 6 in W
+003F   0221           00139                 SUBWF   BUTTON_C1,0 ; sub the value of BUTTON_C1 from W and store the result in W
+0040   1C03           00140                 BTFSS   STATUS,0        ; test the set of STATUS skip if set 
+0041   2844           00141                 GOTO    ISR1            ; Goto ISR1 if not set 
+MPASM  5.50                     FINALWORK.ASM   2-1-2022  13:41:55         PAGE  4
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00142         
+0042   3001           00143                 MOVLW   0x01            ; Put 1 again in BUTTON_C1 if it skipped 
+0043   00A1           00144                 MOVWF   BUTTON_C1       ; BUTTON_C1 = 1
+                      00145 
+                      00146 ; ISR of BUTTON1 to set and reset the interrupt
+Warning[207]: Found label after column 1. (ISR1)
+0044                  00147         ISR1:
+0044   108B           00148                 BCF INTCON, 1           ; clear bit 1 --> clear Flag of RB0 
+0045   178B           00149                 BSF INTCON, 7           ; set bit 7 --> Enable GIE (Global Interrupt Enable)
+0046   160B           00150                 BSF INTCON, 4           ; set bit 4 --> Enable RB0
+                      00151 
+0047   0008           00152         RETURN
+                      00153 
+                      00154 ; Cal and ISR for Buuton2 counter the DELAY increment 
+0048                  00155 CAL_2:
+0048   0AA2           00156                 INCF    BUTTON_C2,1     ; increment BUTTON_C2 and store the value on it
+0049   3006           00157                 MOVLW   0x06            ; put 6 in the W
+004A   0222           00158                 SUBWF   BUTTON_C2,0 ; subtract the value of BUTTON_C2 from W and store in W
+004B   1C03           00159                 BTFSS   STATUS,0        ; test the set of STATUS skip if set  
+004C   284F           00160                 GOTO    ISR2            ; Goto ISR2 if not set
+                      00161         
+004D   3001           00162                 MOVLW   0x01            ; put 1 in W if STATUS set then move it to BUTTON_C2
+004E   00A2           00163                 MOVWF   BUTTON_C2       ; BUTTON_C2 = 1
+                      00164 
+                      00165 ; ISR of BUTTON2 to set and reset the interrupt of DELAY 
+Warning[207]: Found label after column 1. (ISR2)
+004F                  00166         ISR2    
+004F   0886           00167                 MOVF PORTB,1    ; Move the value of PortB and store it on it self 
+0050   3000           00168                 MOVLW 0                 ; Put 0 to W
+0051   0086           00169                 MOVWF PORTB             ; Move 0 to Port B to reset it 
+0052   100B           00170                 BCF INTCON, 0   ; clear Bit0 Flag for RB4 TO RB7 pins
+0053   158B           00171                 BSF INTCON, 3   ; set bit 3 to Enable the Interrupt of RB4 TO RB7 pins
+0054   160B           00172                 BSF INTCON, 4   ; Enable interrupt on RB0 
+0055   178B           00173                 BSF INTCON, 7   ; Enable GIE (Global Interrupt Enable)
+                      00174         
+0056   0008           00175         RETURN
+                      00176 
+                      00177 ; End Program 
+                      00178         END
+MPASM  5.50                     FINALWORK.ASM   2-1-2022  13:41:55         PAGE  5
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+ACKDT                             00000005
+ACKEN                             00000004
+ACKSTAT                           00000006
+ADCON0                            0000001F
+ADCON1                            0000009F
+ADCS0                             00000006
+ADCS1                             00000007
+ADCS2                             00000006
+ADDEN                             00000003
+ADFM                              00000007
+ADIE                              00000006
+ADIF                              00000006
+ADON                              00000000
+ADRESH                            0000001E
+ADRESL                            0000009E
+BCLIE                             00000003
+BCLIF                             00000003
+BF                                00000000
+BRGH                              00000002
+BUTTON_C1                         00000021
+BUTTON_C2                         00000022
+C                                 00000000
+C1INV                             00000004
+C1OUT                             00000006
+C2INV                             00000005
+C2OUT                             00000007
+CAL_1                             0000003D
+CAL_2                             00000048
+CCP1CON                           00000017
+CCP1IE                            00000002
+CCP1IF                            00000002
+CCP1M0                            00000000
+CCP1M1                            00000001
+CCP1M2                            00000002
+CCP1M3                            00000003
+CCP1X                             00000005
+CCP1Y                             00000004
+CCP2CON                           0000001D
+CCP2IE                            00000000
+CCP2IF                            00000000
+CCP2M0                            00000000
+CCP2M1                            00000001
+CCP2M2                            00000002
+CCP2M3                            00000003
+CCP2X                             00000005
+CCP2Y                             00000004
+CCPR1                             00000015
+CCPR1H                            00000016
+CCPR1L                            00000015
+CCPR2                             0000001B
+CCPR2H                            0000001C
+CCPR2L                            0000001B
+CHS0                              00000003
+MPASM  5.50                     FINALWORK.ASM   2-1-2022  13:41:55         PAGE  6
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+CHS1                              00000004
+CHS2                              00000005
+CIS                               00000003
+CKE                               00000006
+CKP                               00000004
+CM0                               00000000
+CM1                               00000001
+CM2                               00000002
+CMCON                             0000009C
+CMIE                              00000006
+CMIF                              00000006
+CREN                              00000004
+CSRC                              00000007
+CVR0                              00000000
+CVR1                              00000001
+CVR2                              00000002
+CVR3                              00000003
+CVRCON                            0000009D
+CVREN                             00000007
+CVROE                             00000006
+CVRR                              00000005
+D                                 00000005
+D1                                00000030
+D2                                00000031
+D3                                00000032
+DATA_ADDRESS                      00000005
+DC                                00000001
+DELAY                             00000030
+D_A                               00000005
+D_NOT_A                           00000005
+EEADR                             0000010D
+EEADRH                            0000010F
+EECON1                            0000018C
+EECON2                            0000018D
+EEDATA                            0000010C
+EEDATH                            0000010E
+EEIE                              00000004
+EEIF                              00000004
+EEPGD                             00000007
+F                                 00000001
+FERR                              00000002
+FSR                               00000004
+GCEN                              00000007
+GIE                               00000007
+GO                                00000002
+GO_DONE                           00000002
+GO_NOT_DONE                       00000002
+I2C_DATA                          00000005
+I2C_READ                          00000002
+I2C_START                         00000003
+I2C_STOP                          00000004
+IBF                               00000007
+IBOV                              00000005
+MPASM  5.50                     FINALWORK.ASM   2-1-2022  13:41:55         PAGE  7
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+INDF                              00000000
+INTCON                            0000000B
+INTE                              00000004
+INTEDG                            00000006
+INTF                              00000001
+IRP                               00000007
+ISR1                              00000044
+ISR2                              0000004F
+LOOP1                             00000036
+LOOP2                             00000034
+LOOP3                             00000032
+NOT_A                             00000005
+NOT_ADDRESS                       00000005
+NOT_BO                            00000000
+NOT_BOR                           00000000
+NOT_DONE                          00000002
+NOT_PD                            00000003
+NOT_POR                           00000001
+NOT_RBPU                          00000007
+NOT_RC8                           00000006
+NOT_T1SYNC                        00000002
+NOT_TO                            00000004
+NOT_TX8                           00000006
+NOT_W                             00000002
+NOT_WRITE                         00000002
+OBF                               00000006
+OERR                              00000001
+OPTION_REG                        00000081
+OPTREG                            00000081
+P                                 00000004
+PCFG0                             00000000
+PCFG1                             00000001
+PCFG2                             00000002
+PCFG3                             00000003
+PCL                               00000002
+PCLATH                            0000000A
+PCON                              0000008E
+PEIE                              00000006
+PEN                               00000002
+PIE1                              0000008C
+PIE2                              0000008D
+PIR1                              0000000C
+PIR2                              0000000D
+PORTA                             00000005
+PORTB                             00000006
+PORTC                             00000007
+PORTD                             00000008
+PORTE                             00000009
+PR2                               00000092
+PS0                               00000000
+PS1                               00000001
+PS2                               00000002
+PSA                               00000003
+MPASM  5.50                     FINALWORK.ASM   2-1-2022  13:41:55         PAGE  8
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+PSPIE                             00000007
+PSPIF                             00000007
+PSPMODE                           00000004
+R                                 00000002
+RA0                               00000000
+RA1                               00000001
+RA2                               00000002
+RA3                               00000003
+RA4                               00000004
+RA5                               00000005
+RB0                               00000000
+RB1                               00000001
+RB2                               00000002
+RB3                               00000003
+RB4                               00000004
+RB5                               00000005
+RB6                               00000006
+RB7                               00000007
+RBIE                              00000003
+RBIF                              00000000
+RC0                               00000000
+RC1                               00000001
+RC2                               00000002
+RC3                               00000003
+RC4                               00000004
+RC5                               00000005
+RC6                               00000006
+RC7                               00000007
+RC8_9                             00000006
+RC9                               00000006
+RCD8                              00000000
+RCEN                              00000003
+RCIE                              00000005
+RCIF                              00000005
+RCREG                             0000001A
+RCSTA                             00000018
+RD                                00000000
+RD0                               00000000
+RD1                               00000001
+RD2                               00000002
+RD3                               00000003
+RD4                               00000004
+RD5                               00000005
+RD6                               00000006
+RD7                               00000007
+RE0                               00000000
+RE1                               00000001
+RE2                               00000002
+READ_WRITE                        00000002
+RP0                               00000005
+RP1                               00000006
+RSEN                              00000001
+RX9                               00000006
+MPASM  5.50                     FINALWORK.ASM   2-1-2022  13:41:55         PAGE  9
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+RX9D                              00000000
+R_NOT_W                           00000002
+R_W                               00000002
+S                                 00000003
+SEN                               00000000
+SMP                               00000007
+SPBRG                             00000099
+SPEN                              00000007
+SREN                              00000005
+SSPADD                            00000093
+SSPBUF                            00000013
+SSPCON                            00000014
+SSPCON2                           00000091
+SSPEN                             00000005
+SSPIE                             00000003
+SSPIF                             00000003
+SSPM0                             00000000
+SSPM1                             00000001
+SSPM2                             00000002
+SSPM3                             00000003
+SSPOV                             00000006
+SSPSTAT                           00000094
+STATUS                            00000003
+SYNC                              00000004
+T0CS                              00000005
+T0IE                              00000005
+T0IF                              00000002
+T0SE                              00000004
+T1CKPS0                           00000004
+T1CKPS1                           00000005
+T1CON                             00000010
+T1INSYNC                          00000002
+T1OSCEN                           00000003
+T1SYNC                            00000002
+T2CKPS0                           00000000
+T2CKPS1                           00000001
+T2CON                             00000012
+TMR0                              00000001
+TMR0IE                            00000005
+TMR0IF                            00000002
+TMR1                              0000000E
+TMR1CS                            00000001
+TMR1H                             0000000F
+TMR1IE                            00000000
+TMR1IF                            00000000
+TMR1L                             0000000E
+TMR1ON                            00000000
+TMR2                              00000011
+TMR2IE                            00000001
+TMR2IF                            00000001
+TMR2ON                            00000002
+TOUTPS0                           00000003
+TOUTPS1                           00000004
+MPASM  5.50                     FINALWORK.ASM   2-1-2022  13:41:55         PAGE 10
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+TOUTPS2                           00000005
+TOUTPS3                           00000006
+TRISA                             00000085
+TRISA0                            00000000
+TRISA1                            00000001
+TRISA2                            00000002
+TRISA3                            00000003
+TRISA4                            00000004
+TRISA5                            00000005
+TRISB                             00000086
+TRISB0                            00000000
+TRISB1                            00000001
+TRISB2                            00000002
+TRISB3                            00000003
+TRISB4                            00000004
+TRISB5                            00000005
+TRISB6                            00000006
+TRISB7                            00000007
+TRISC                             00000087
+TRISC0                            00000000
+TRISC1                            00000001
+TRISC2                            00000002
+TRISC3                            00000003
+TRISC4                            00000004
+TRISC5                            00000005
+TRISC6                            00000006
+TRISC7                            00000007
+TRISD                             00000088
+TRISD0                            00000000
+TRISD1                            00000001
+TRISD2                            00000002
+TRISD3                            00000003
+TRISD4                            00000004
+TRISD5                            00000005
+TRISD6                            00000006
+TRISD7                            00000007
+TRISE                             00000089
+TRISE0                            00000000
+TRISE1                            00000001
+TRISE2                            00000002
+TRMT                              00000001
+TX8_9                             00000006
+TX9                               00000006
+TX9D                              00000000
+TXD8                              00000000
+TXEN                              00000005
+TXIE                              00000004
+TXIF                              00000004
+TXREG                             00000019
+TXSTA                             00000098
+UA                                00000001
+W                                 00000000
+WCOL                              00000007
+MPASM  5.50                     FINALWORK.ASM   2-1-2022  13:41:55         PAGE 11
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+WR                                00000001
+WREN                              00000002
+WRERR                             00000003
+Z                                 00000002
+_BODEN_OFF                        00003FBF
+_BODEN_ON                         00003FFF
+_BOREN_OFF                        00003FBF
+_BOREN_ON                         00003FFF
+_CONFIG                           00002007
+_CPD_OFF                          00003FFF
+_CPD_ON                           00003EFF
+_CP_ALL                           00001FFF
+_CP_OFF                           00003FFF
+_CP_ON                            00001FFF
+_DEBUG_OFF                        00003FFF
+_DEBUG_ON                         000037FF
+_DEVID1                           00002006
+_FOSC_EXTRC                       00003FFF
+_FOSC_HS                          00003FFE
+_FOSC_LP                          00003FFC
+_FOSC_XT                          00003FFD
+_HS_OSC                           00003FFE
+_IDLOC0                           00002000
+_IDLOC1                           00002001
+_IDLOC2                           00002002
+_IDLOC3                           00002003
+_LP_OSC                           00003FFC
+_LVP_OFF                          00003F7F
+_LVP_ON                           00003FFF
+_PWRTE_OFF                        00003FFF
+_PWRTE_ON                         00003FF7
+_RC_OSC                           00003FFF
+_WDTE_OFF                         00003FFB
+_WDTE_ON                          00003FFF
+_WDT_OFF                          00003FFB
+_WDT_ON                           00003FFF
+_WRT_1FOURTH                      00003BFF
+_WRT_256                          00003DFF
+_WRT_HALF                         000039FF
+_WRT_OFF                          00003FFF
+_XT_OSC                           00003FFD
+__16F877A                         00000001
+__DEBUG                           1
+count                             00000028
+del_c2                            0000002C
+delay_c2                          00000033
+init                              0000000A
+reset                             0000001E
+start                             00000020
+stepin                            00000023
+wait                              00000021
+MPASM  5.50                     FINALWORK.ASM   2-1-2022  13:41:55         PAGE 12
+
+
+MEMORY USAGE MAP ('X' = Used,  '-' = Unused)
+
+
+0000 : XX--XXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
+0040 : XXXXXXXXXXXXXXXX XXXXXXX--------- ---------------- ----------------
+2000 : -------X-------- ---------------- ---------------- ----------------
+
+All other memory blocks unused.
+
+Program Memory Words Used:    85
+Program Memory Words Free:  8107
+
+
+Errors   :     0
+Warnings :     5 reported,     0 suppressed
+Messages :     6 reported,     0 suppressed
+
+

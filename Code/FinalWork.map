@@ -1,0 +1,64 @@
+MPLINK 4.48, Linker
+Linker Map File - Created Tue Feb 01 13:41:56 2022
+
+                                 Section Info
+                  Section       Type    Address   Location Size(Bytes)
+                ---------  ---------  ---------  ---------  ---------
+                   .org_0       code   0x000000    program   0x000000
+                   .org_1       code   0x000000    program   0x000004
+                   .org_2       code   0x000004    program   0x0000a6
+ .config_2007_FINALWORK.O       code   0x002007    program   0x000002
+
+
+
+                              Program Memory Usage 
+                               Start         End      
+                           ---------   ---------      
+                            0x000000    0x000001      
+                            0x000004    0x000056      
+                            0x002007    0x002007      
+            86 out of 8454 program addresses used, program memory utilization is 1%
+
+
+
+                              Symbols - Sorted by Name
+                     Name    Address   Location    Storage File                     
+                ---------  ---------  ---------  --------- ---------                
+                    CAL_1   0x00003d    program     static E:\University\Real Time\Project4\Proj4\Project\FinalWork.asm
+                    CAL_2   0x000048    program     static E:\University\Real Time\Project4\Proj4\Project\FinalWork.asm
+                    DELAY   0x000030    program     static E:\University\Real Time\Project4\Proj4\Project\FinalWork.asm
+                     ISR1   0x000044    program     static E:\University\Real Time\Project4\Proj4\Project\FinalWork.asm
+                     ISR2   0x00004f    program     static E:\University\Real Time\Project4\Proj4\Project\FinalWork.asm
+                    LOOP1   0x000036    program     static E:\University\Real Time\Project4\Proj4\Project\FinalWork.asm
+                    LOOP2   0x000034    program     static E:\University\Real Time\Project4\Proj4\Project\FinalWork.asm
+                    LOOP3   0x000032    program     static E:\University\Real Time\Project4\Proj4\Project\FinalWork.asm
+                    count   0x000028    program     static E:\University\Real Time\Project4\Proj4\Project\FinalWork.asm
+                   del_c2   0x00002c    program     static E:\University\Real Time\Project4\Proj4\Project\FinalWork.asm
+                     init   0x00000a    program     static E:\University\Real Time\Project4\Proj4\Project\FinalWork.asm
+                    reset   0x00001e    program     static E:\University\Real Time\Project4\Proj4\Project\FinalWork.asm
+                    start   0x000020    program     static E:\University\Real Time\Project4\Proj4\Project\FinalWork.asm
+                   stepin   0x000023    program     static E:\University\Real Time\Project4\Proj4\Project\FinalWork.asm
+                     wait   0x000021    program     static E:\University\Real Time\Project4\Proj4\Project\FinalWork.asm
+
+
+
+                              Symbols - Sorted by Address
+                     Name    Address   Location    Storage File                     
+                ---------  ---------  ---------  --------- ---------                
+                     init   0x00000a    program     static E:\University\Real Time\Project4\Proj4\Project\FinalWork.asm
+                    reset   0x00001e    program     static E:\University\Real Time\Project4\Proj4\Project\FinalWork.asm
+                    start   0x000020    program     static E:\University\Real Time\Project4\Proj4\Project\FinalWork.asm
+                     wait   0x000021    program     static E:\University\Real Time\Project4\Proj4\Project\FinalWork.asm
+                   stepin   0x000023    program     static E:\University\Real Time\Project4\Proj4\Project\FinalWork.asm
+                    count   0x000028    program     static E:\University\Real Time\Project4\Proj4\Project\FinalWork.asm
+                   del_c2   0x00002c    program     static E:\University\Real Time\Project4\Proj4\Project\FinalWork.asm
+                    DELAY   0x000030    program     static E:\University\Real Time\Project4\Proj4\Project\FinalWork.asm
+                    LOOP3   0x000032    program     static E:\University\Real Time\Project4\Proj4\Project\FinalWork.asm
+                    LOOP2   0x000034    program     static E:\University\Real Time\Project4\Proj4\Project\FinalWork.asm
+                    LOOP1   0x000036    program     static E:\University\Real Time\Project4\Proj4\Project\FinalWork.asm
+                    CAL_1   0x00003d    program     static E:\University\Real Time\Project4\Proj4\Project\FinalWork.asm
+                     ISR1   0x000044    program     static E:\University\Real Time\Project4\Proj4\Project\FinalWork.asm
+                    CAL_2   0x000048    program     static E:\University\Real Time\Project4\Proj4\Project\FinalWork.asm
+                     ISR2   0x00004f    program     static E:\University\Real Time\Project4\Proj4\Project\FinalWork.asm
+
+
